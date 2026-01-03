@@ -1,0 +1,184 @@
+--[[
+
+    WindUI Minimal Example
+    
+    
+]]
+
+local WindUI
+
+do
+    local ok, result = pcall(function()
+        return require("./src/Init")
+    end)
+    
+    if ok then
+        WindUI = result
+    else 
+        WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/refs/heads/main/dist/main.lua"))()
+    end
+end
+
+-- Window
+local Window = WindUI:CreateWindow({
+    Title = "Exe fps ez Hub", -- ชื่อ Window
+    Author = "Zeno-Hub238", --  Author
+    Folder = "ftgshub",
+    Icon = nil, -- 
+    IconSize = 22*2,
+    NewElements = true,
+    
+    HideSearchBar = false,
+    
+    OpenButton = {
+        Title = "Exe fps ez Hub", --  UI
+        CornerRadius = UDim.new(1,0),
+        StrokeThickness = 3,
+        Enabled = true,
+        Draggable = true,
+        OnlyMobile = false,
+        
+        Color = ColorSequence.new(
+            Color3.fromHex("#30FF6A"), 
+            Color3.fromHex("#e7ff2f")
+        ),
+        Icon = nil, -- 
+    },
+    
+    KeySystem = nil -- ปิด Key System
+})
+
+--  Tab
+local ElementsSection = Window:Section({ Title = "Elements" })
+
+-- -----------------------------
+
+-- -----------------------------
+local PVPTab = ElementsSection:Tab({
+    Title = "PVP",
+    Icon = nil
+})
+
+PVPTab:Section({
+    Title = "PVP Options",
+    TextSize = 20,
+    FontWeight = Enum.FontWeight.SemiBold
+}
+-- 1. ตั้งค่าเบื้องต้นและสร้าง FOV Circle
+local player = game.Players.LocalPlayer
+local camera = workspace.CurrentCamera
+local mouse = player:GetMouse()
+
+local FOV_CIRCLE = Drawing.new("Circle")
+FOV_CIRCLE.Visible = false
+FOV_CIRCLE.Color = Color3.fromRGB(255, 255, 0)
+FOV_CIRCLE.Thickness = 1
+FOV_CIRCLE.Radius = 371
+
+-- 2. ตัวแปรเก็บสถานะ (State)
+local Config = {
+    ShowFOV = false,
+    FOVValue = 371,
+    MagicBullet = false,
+    AimPart = "Head"
+}
+
+-- 3. ฟังก์ชันหาเป้าหมาย
+local function getTarget()
+    local nearestTarget = nil
+    local shortestDistance = Config.FOVValue
+
+    for _, v in pairs(game.Players:GetPlayers()) do
+        if v ~= player and v.Character and v.Character:FindFirstChild(Config.AimPart) then
+            local pos, onScreen = camera:WorldToViewportPoint(v.Character[Config.AimPart].Position)
+            if onScreen then
+                local distance = (Vector2.new(pos.X, pos.Y) - Vector2.new(mouse.X, mouse.Y + 36)).Magnitude
+                if distance < shortestDistance then
+                    nearestTarget = v.Character[Config.AimPart]
+                    shortestDistance = distance
+                end
+            end
+        end
+    end
+    return nearestTarget
+end
+
+-- 4. การเชื่อมต่อกับ UI ของคุณ (Exe fps ez Hub)
+-- หมายเหตุ: ชื่อฟังก์ชันเหล่านี้ (AddToggle, AddSlider) อาจต่างกันไปตาม Lib ที่คุณใช้
+local Tab = -- อ้างอิงถึงหน้า PVP Options ของคุณ
+
+Tab:AddToggle({
+    Name = "Show FOV",
+    Default = false,
+    Callback = function(Value)
+        Config.ShowFOV = Value
+        FOV_CIRCLE.Visible = Value
+    end
+})
+
+Tab:AddSlider({
+    Name = "FOV Size",
+    Min = 0,
+    Max = 800,
+    Default = 371,
+    Callback = function(Value)
+        Config.FOVValue = Value
+        FOV_CIRCLE.Radius = Value
+    end
+})
+
+Tab:AddToggle({
+    Name = "Magic Bullet",
+    Default = false,
+    Callback = function(Value)
+        Config.MagicBullet = Value
+    end
+})
+
+-- 5. ระบบ Loop เพื่ออัปเดตตำแหน่งวงกลม
+game:GetService("RunService").RenderStepped:Connect(function()
+    if Config.ShowFOV then
+        FOV_CIRCLE.Position = Vector2.new(mouse.X, mouse.Y + 36)
+    end
+end)
+-- -----------------------------
+
+-- -----------------------------
+local ESPTab = ElementsSection:Tab({
+    Title = "ESP",
+    Icon = nil
+})
+
+ESPTab:Section({
+    Title = "ESP Options",
+    TextSize = 20,
+    FontWeight = Enum.FontWeight.SemiBold
+})
+
+-- -----------------------------
+
+-- -----------------------------
+local LootTab = ElementsSection:Tab({
+    Title = "เก็บของ 🎁",
+    Icon = nil
+})
+
+LootTab:Section({
+    Title = "Loot Options",
+    TextSize = 20,
+    FontWeight = Enum.FontWeight.SemiBold
+})
+
+-- -----------------------------
+
+-- -----------------------------
+local BodyTab = ElementsSection:Tab({
+    Title = "ร่างกาย 💪",
+    Icon = nil
+})
+
+BodyTab:Section({
+    Title = "Body Options",
+    TextSize = 20,
+    FontWeight = Enum.FontWeight.SemiBold
+})
