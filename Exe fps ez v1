@@ -54,8 +54,6 @@ local ElementsSection = Window:Section({ Title = "Elements" })
 -- -----------------------------
 
 -- -----------------------------
--- [[ ส่วนนี้คือ LOGIC: สมองของระบบ ]]
-
 local FOV_CIRCLE = Drawing.new("Circle") -- สร้างวงกลม
 FOV_CIRCLE.Visible = false
 FOV_CIRCLE.Color = Color3.fromRGB(255, 255, 0)
@@ -100,9 +98,7 @@ PVPTab:Section({
     Title = "PVP Options",
     TextSize = 20,
     FontWeight = Enum.FontWeight.SemiBold
-}
-Lua
--- [[ วางในบรรทัด 67 ต่อจาก Section ]]
+})
 PVPTab:Toggle({
     Title = "Show FOV",
     Default = false,
