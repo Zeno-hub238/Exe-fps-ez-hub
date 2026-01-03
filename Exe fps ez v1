@@ -54,6 +54,43 @@ local ElementsSection = Window:Section({ Title = "Elements" })
 -- -----------------------------
 
 -- -----------------------------
+-- [[ ส่วนนี้คือ LOGIC: สมองของระบบ ]]
+
+local FOV_CIRCLE = Drawing.new("Circle") -- สร้างวงกลม
+FOV_CIRCLE.Visible = false
+FOV_CIRCLE.Color = Color3.fromRGB(255, 255, 0)
+FOV_CIRCLE.Thickness = 1
+
+-- ตัวแปรสถานะ (เป็น Logic ที่เชื่อมกับปุ่ม UI)
+_G.ShowFOV = false
+_G.FOVValue = 371
+_G.MagicBullet = false
+_G.AimPart = "Head"
+
+-- Logic การคำนวณหาเป้าหมาย (หัวใจสำคัญ)
+local function getTarget()
+    local nearestTarget = nil
+    local shortestDistance = _G.FOVValue
+    
+    for _, v in pairs(game.Players:GetPlayers()) do
+        if v ~= game.Players.LocalPlayer and v.Character and v.Character:FindFirstChild(_G.AimPart) then
+            -- Logic: แปลงตำแหน่ง 3D เป็นพิกัดบนจอ (Viewport)
+            local pos, onScreen = workspace.CurrentCamera:WorldToViewportPoint(v.Character[_G.AimPart].Position)
+            
+            if onScreen then
+                -- Logic: คำนวณระยะห่างระหว่าง "เป้า" กับ "หัวศัตรู"
+                local mousePos = Vector2.new(game.Players.LocalPlayer:GetMouse().X, game.Players.LocalPlayer:GetMouse().Y + 36)
+                local distance = (Vector2.new(pos.X, pos.Y) - mousePos).Magnitude
+                
+                if distance < shortestDistance then
+                    nearestTarget = v.Character[_G.AimPart]
+                    shortestDistance = distance
+                end
+            end
+        end
+    end
+    return nearestTarget
+end
 local PVPTab = ElementsSection:Tab({
     Title = "PVP",
     Icon = nil
@@ -64,83 +101,34 @@ PVPTab:Section({
     TextSize = 20,
     FontWeight = Enum.FontWeight.SemiBold
 }
--- 1. ตั้งค่าเบื้องต้นและสร้าง FOV Circle
-local player = game.Players.LocalPlayer
-local camera = workspace.CurrentCamera
-local mouse = player:GetMouse()
-
-local FOV_CIRCLE = Drawing.new("Circle")
-FOV_CIRCLE.Visible = false
-FOV_CIRCLE.Color = Color3.fromRGB(255, 255, 0)
-FOV_CIRCLE.Thickness = 1
-FOV_CIRCLE.Radius = 371
-
--- 2. ตัวแปรเก็บสถานะ (State)
-local Config = {
-    ShowFOV = false,
-    FOVValue = 371,
-    MagicBullet = false,
-    AimPart = "Head"
-}
-
--- 3. ฟังก์ชันหาเป้าหมาย
-local function getTarget()
-    local nearestTarget = nil
-    local shortestDistance = Config.FOVValue
-
-    for _, v in pairs(game.Players:GetPlayers()) do
-        if v ~= player and v.Character and v.Character:FindFirstChild(Config.AimPart) then
-            local pos, onScreen = camera:WorldToViewportPoint(v.Character[Config.AimPart].Position)
-            if onScreen then
-                local distance = (Vector2.new(pos.X, pos.Y) - Vector2.new(mouse.X, mouse.Y + 36)).Magnitude
-                if distance < shortestDistance then
-                    nearestTarget = v.Character[Config.AimPart]
-                    shortestDistance = distance
-                end
-            end
-        end
-    end
-    return nearestTarget
-end
-
--- 4. การเชื่อมต่อกับ UI ของคุณ (Exe fps ez Hub)
--- หมายเหตุ: ชื่อฟังก์ชันเหล่านี้ (AddToggle, AddSlider) อาจต่างกันไปตาม Lib ที่คุณใช้
-local Tab = -- อ้างอิงถึงหน้า PVP Options ของคุณ
-
-Tab:AddToggle({
-    Name = "Show FOV",
+Lua
+-- [[ วางในบรรทัด 67 ต่อจาก Section ]]
+PVPTab:Toggle({
+    Title = "Show FOV",
     Default = false,
     Callback = function(Value)
-        Config.ShowFOV = Value
+        _G.ShowFOV = Value
         FOV_CIRCLE.Visible = Value
     end
 })
 
-Tab:AddSlider({
-    Name = "FOV Size",
+PVPTab:Slider({
+    Title = "FOV Size",
     Min = 0,
     Max = 800,
     Default = 371,
     Callback = function(Value)
-        Config.FOVValue = Value
-        FOV_CIRCLE.Radius = Value
+        _G.FOVValue = Value
     end
 })
 
-Tab:AddToggle({
-    Name = "Magic Bullet",
+PVPTab:Toggle({
+    Title = "Magic Bullet",
     Default = false,
     Callback = function(Value)
-        Config.MagicBullet = Value
+        _G.MagicBullet = Value
     end
 })
-
--- 5. ระบบ Loop เพื่ออัปเดตตำแหน่งวงกลม
-game:GetService("RunService").RenderStepped:Connect(function()
-    if Config.ShowFOV then
-        FOV_CIRCLE.Position = Vector2.new(mouse.X, mouse.Y + 36)
-    end
-end)
 -- -----------------------------
 
 -- -----------------------------
